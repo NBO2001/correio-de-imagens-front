@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-import { Button, TextField, Alert, CircularProgress, AlertTitle } from '@mui/material'
+import { Button, TextField, Alert, CircularProgress, AlertTitle, Grid } from '@mui/material'
 
 import { ToastContainer } from 'react-toastify'
 
@@ -77,18 +77,40 @@ const Home = () => {
             <ToastContainer/>
             <Conteinner>
                 <FormC fullWidth >
-                    <TextField
-                    fullWidth
-                    id="filled-read-only-input"
-                    label="Quantidade de Caixas"
-                    defaultValue="0"
-                    value={contBoxs}
-                    InputProps={{
-                        readOnly: true,
-                    }}
-                    variant="filled"
-                    />
-                    { ultBox && (<TextField size={"medium"} fullWidth id="boxnumber" name="boxnumber" defaultValue={ultBox} label="Box" variant="outlined" />)}
+                    <Grid container spacing={2} columns={16}>
+
+                        <Grid item xs={8}>
+                            
+                            { ultBox && (
+                            <TextField 
+                            size={"medium"} 
+                            fullWidth 
+                            id="boxnumber" 
+                            name="boxnumber" 
+                            defaultValue={ultBox} 
+                            label="Box" 
+                            variant="outlined" 
+                            />)}
+
+                        </Grid>
+
+                        <Grid item xs={8}>
+
+                            <TextField
+                            fullWidth
+                            id="filled-read-only-input"
+                            label="Quantidade de Caixas"
+                            defaultValue="0"
+                            value={contBoxs}
+                            InputProps={{
+                                readOnly: true,
+                            }}
+                            variant="filled"
+                            />
+
+                        </Grid>
+                        
+                    </Grid>
          
                     <label htmlFor="contained-button-file">
 
@@ -99,13 +121,22 @@ const Home = () => {
                         type="file"
                         onChange={sendBack} />
 
-                        <Button variant="contained" fullWidth component="span" size={"medium"} >
+                        <Button color={"warning"} size={"large"} variant="contained" fullWidth component="span" >
                             Capturar Imagen
                         </Button>
                     </label>
-                    
-                    <Button size={"medium"} variant="contained" fullWidth onClick={addBox}>Proxima Caixa</Button>
-                    <Button size={"medium"} variant="contained" fullWidth onClick={substBox}>Caixa Anterior</Button>
+                    <Grid container spacing={2} columns={16}>
+                        <Grid item xs={8}>
+                            
+                            <Button size={"medium"} variant="contained" fullWidth onClick={substBox}>Caixa Anterior</Button>
+                            
+                        </Grid>
+                        <Grid item xs={8}>
+                            
+                            <Button size={"medium"} variant="contained" fullWidth onClick={addBox}>Proxima Caixa</Button>
+
+                        </Grid>
+                    </Grid>
                 </FormC>
             </Conteinner>
         </BodyPage>

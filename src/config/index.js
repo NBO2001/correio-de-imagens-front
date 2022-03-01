@@ -1,5 +1,5 @@
 import axios from "axios";
 
 export default axios.create({
-    baseURL: `http://192.168.0.14:5000/api`
+    baseURL: `${process.env.REACT_APP_HOST}`
 });

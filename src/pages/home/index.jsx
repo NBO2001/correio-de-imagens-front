@@ -1,17 +1,21 @@
-import { BodyPage, Conteinner, FormC } from './../../components'
-
-import { InputBase, Button, TextField } from '@mui/material'
-
 import { useState, useEffect } from 'react'
 
+import { Button, TextField, Alert, CircularProgress, AlertTitle } from '@mui/material'
+
 import { ToastContainer } from 'react-toastify'
-import { notify } from '../../utils'
+
+import { BodyPage, Conteinner, FormC, Modal, DivAlert, InputFile } from './../../components'
+
+import { notify, addBox, substBox } from '../../utils'
 
 import api from './../../config'
 
+
 const Home = () => {
+
+    const [modalOpened, setModalOpened] = useState(false);
     const [ contBoxs, setContBoxs ] = useState(0)
-    const [ ultBox, setUltBox ] = useState("1.1")
+    const [ ultBox, setUltBox ] = useState()
 
     useEffect( () => {
         
@@ -28,54 +32,16 @@ const Home = () => {
         .catch((err) => notify('Error', "Ocorreu um error inesperado"))
     
     }, [] )
-
-    const subst = () => {
-        const inputValue = document.querySelector("[id='boxnumber']")
-        const values_spli = (inputValue.value).split('.')
-        
-        if(values_spli.length === 2){
-            
-            if (values_spli[1] > 1){
-                
-                const nextBox = parseInt(values_spli[1]) - 1
-                inputValue.value = `${values_spli[0]}.${nextBox}`
-            } 
-            else if(values_spli[1] <= 1){
-
-                const nextUep = parseInt(values_spli[0]) - 1
-                inputValue.value = `${nextUep}.3`
-            }
-        }
-    }
-    const add = () => {
-        
-        const inputValue = document.querySelector("[id='boxnumber']")
-
-        const values_spli = (inputValue.value).split('.')
-
-        if(values_spli.length === 2){
-            
-            if(values_spli[1] >= 3){
-
-                const nextUep = parseInt(values_spli[0]) + 1
-                inputValue.value = `${nextUep}.1`
-            }
-            
-            else if (values_spli[1] < 3){
-                
-                const nextBox = parseInt(values_spli[1]) + 1
-                inputValue.value = `${values_spli[0]}.${nextBox}`
-            }
-        }
-
-    }
+    
 
     const sendBack = (e) => {
         e.preventDefault()
         const boxNumber = document.querySelector("[id='boxnumber']").value
 
         const formData = new FormData();
-        
+        if (!((e.target.files[0]).length) && !(boxNumber.length)){
+            return false
+        }
         formData.append('File', e.target.files[0]);
         formData.append('Path', boxNumber);
         
@@ -84,23 +50,29 @@ const Home = () => {
                 'Content-Type': 'application/json'
             }
        }
-
+       setModalOpened(true)
        api.post('/upimg', formData, headers)
         .then(({data}) => {
             
             if(!data.Error){
+                setModalOpened(false)
                 notify('Success', "Imagem adicionada com sucesso!!")
                 setContBoxs(data.boxs)
                 setUltBox(data.endboxs)
             }else{
+                setModalOpened(false)
                 notify('Error', "Imagem não adicionada com sucesso!!")
             }
         })
-        .catch((err) => notify('Error', "Ocorreu um error inesperado"))
+        .catch((err) => {
+            setModalOpened(false)
+            notify('Error', "Ocorreu um error inesperado")}
+        )
         
     }
 
     return (
+        <>
         <BodyPage>
             <ToastContainer/>
             <Conteinner>
@@ -116,13 +88,40 @@ const Home = () => {
                     }}
                     variant="filled"
                     />
-                    <TextField size={"medium"} fullWidth id="boxnumber" name="boxnumber" defaultValue={'1.1'} value={ultBox}  label="Box" variant="outlined" />
-                    <InputBase size={"medium"} fullWidth type="file" name="boxs" accept="image/*" capture="camera" onChange={sendBack} />
-                    <Button fullWidth size={"medium"} variant="contained" onClick={add}>Proxima Caixa</Button>
-                    <Button fullWidth size={"medium"} variant="contained" onClick={subst}>Caixa Anterior</Button>
+                    { ultBox && (<TextField size={"medium"} fullWidth id="boxnumber" name="boxnumber" defaultValue={ultBox} label="Box" variant="outlined" />)}
+         
+                    <label htmlFor="contained-button-file">
+
+                        <InputFile
+                        accept="image/*" 
+                        id="contained-button-file" 
+                        capture="camera" 
+                        type="file"
+                        onChange={sendBack} />
+
+                        <Button variant="contained" fullWidth component="span" size={"medium"} >
+                            Capturar Imagen
+                        </Button>
+                    </label>
+                    
+                    <Button size={"medium"} variant="contained" fullWidth onClick={addBox}>Proxima Caixa</Button>
+                    <Button size={"medium"} variant="contained" fullWidth onClick={substBox}>Caixa Anterior</Button>
                 </FormC>
             </Conteinner>
         </BodyPage>
+
+        <Modal open={modalOpened} onClose={() => setModalOpened(!modalOpened)}>
+            <DivAlert>
+
+                <Alert severity="warning">
+                    <AlertTitle>Alerta</AlertTitle>
+                    Enviando, aguarde ... <CircularProgress color="success" />
+                </Alert>
+                
+            </DivAlert>
+           
+        </Modal>
+        </>
     )
 }
 

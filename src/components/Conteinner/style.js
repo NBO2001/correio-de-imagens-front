@@ -9,5 +9,5 @@ export const Wrapper = styled.div`
     flex-direction: column;
     justify-content: center;
     border-radius: 10px;
-    background-color: #D7FAD9;
+    background-color: #DEEFE7;
 `

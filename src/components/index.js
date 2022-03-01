@@ -1,3 +1,6 @@
 export { default as BodyPage} from './BodyPage'
 export { default as Conteinner } from './Conteinner'
 export { default as FormC} from './FormC'
+export { default as Modal } from './Modal'
+export { default as DivAlert } from './DivAlert'
+export { default as InputFile } from './InputFile'

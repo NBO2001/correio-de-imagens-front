@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react'
 
-import { Button, TextField, Alert, CircularProgress, AlertTitle, Grid, CardMedia } from '@mui/material'
+import { Button, TextField, Alert, CircularProgress, AlertTitle, Grid } from '@mui/material'
 
 import { ToastContainer } from 'react-toastify'
 
 import { BodyPage, Conteinner, FormC, Modal, DivAlert, ConteinnerPre, DivImg, DivForm } from './../../components'
 
-import { notify, addBox, substBox } from '../../utils'
+import { notify } from '../../utils'
 
 import api from './../../config'
 
 const Preinv = () => {
     
-    const [modalOpened, setModalOpened] = useState(false);
+    const [modalOpened, setModalOpened] = useState(false)
+    const [previn, setPrevin ] = useState({})
     const [ contBoxs, setContBoxs ] = useState(0)
     const [ idImg, setIdImg ] = useState(1)
 
+    useEffect( () => {
+        get_box_info(1)
+    }, [])
 
     const get_box_info = (id_img) => {
 
@@ -25,6 +29,7 @@ const Preinv = () => {
             
             if(!data.Error){
                 setIdImg(id_img)
+                setPrevin({ ...previn, 'index': data.box })
                 setContBoxs(data.box)
                 
             }else{
@@ -38,6 +43,14 @@ const Preinv = () => {
         )
         
     }
+
+    const addInfo = (e) => {
+        e.preventDefault()
+        
+        setPrevin({ ...previn, [e.target.name]: e.target.value })
+        
+    }
+
     const addV = () => {
         
         get_box_info(idImg + 1)
@@ -49,6 +62,66 @@ const Preinv = () => {
             get_box_info(idImg - 1)
         }
     }  
+
+    const gerarPlan = (e) => {
+
+        e.preventDefault()
+        api.get('/table')
+        .then(({data}) => {
+            
+            if(!data.Error){
+                
+                notify('Success', "Planilha gerada com sucesso")
+                
+            }else{
+                setModalOpened(false)
+                notify('Error', "Erro interno")
+            }
+        })
+        .catch((err) => {
+            console.log(err)
+        }
+        )
+
+    }
+
+    const sendBack = (e) => {
+        e.preventDefault()
+        
+        const formData = new FormData();
+        
+        const keys = Object.keys(previn);
+
+        for (let i=0; i < keys.length; i++){
+            formData.append(keys[i], previn[keys[i]]);
+            
+        }
+        
+        const headers = {
+            'headers': {
+                'Content-Type': 'application/json'
+            }
+       }
+       setModalOpened(true)
+       api.post('/addinfobox', formData, headers)
+        .then(({data}) => {
+            
+            if(!data.Error){
+                setModalOpened(false)
+                notify('Success', "Linha adicionada!!")
+               
+            }else{
+                setModalOpened(false)
+                notify('Error', "Linha NÂO adicionada!!")
+            }
+        })
+        .catch((err) => {
+            setModalOpened(false)
+            notify('Error', "Ocorreu um error inesperado")}
+        )
+        
+    }
+
     return (
         <>
         <BodyPage>
@@ -63,8 +136,9 @@ const Preinv = () => {
                                     <TextField 
                                     size={"medium"} 
                                     fullWidth 
+                                    onChange={addInfo}
                                     id="clien" 
-                                    name="clien_nun" 
+                                    name="cliente" 
                                     label="Cliente" 
                                     variant="outlined" 
                                     />
@@ -74,8 +148,9 @@ const Preinv = () => {
                                     <TextField 
                                     size={"medium"} 
                                     fullWidth 
-                                    id="setor" 
-                                    name="setor_name" 
+                                    id="setorid"
+                                    onChange={addInfo} 
+                                    name="setor" 
                                     label="Setor" 
                                     variant="outlined" 
                                     />
@@ -102,8 +177,9 @@ const Preinv = () => {
                                 <TextField 
                                     size={"medium"} 
                                     fullWidth 
-                                    id="describe" 
-                                    name="describe_name" 
+                                    id="describeid" 
+                                    name="descricao" 
+                                    onChange={addInfo}
                                     label="Descrição" 
                                     variant="outlined" 
                                 />
@@ -114,8 +190,9 @@ const Preinv = () => {
                                     <TextField 
                                         size={"medium"} 
                                         fullWidth 
-                                        id="key_one" 
-                                        name="key_one_name" 
+                                        id="key_oneid" 
+                                        name="key_one" 
+                                        onChange={addInfo}
                                         label="Chave A" 
                                         variant="outlined" 
                                     />
@@ -124,8 +201,9 @@ const Preinv = () => {
                                     <TextField 
                                             size={"medium"} 
                                             fullWidth 
-                                            id="key_two" 
-                                            name="key_two_name" 
+                                            id="key_twoid" 
+                                            name="key_two" 
+                                            onChange={addInfo}
                                             label="Chave B" 
                                             variant="outlined" 
                                         />
@@ -139,7 +217,8 @@ const Preinv = () => {
                                         size={"medium"} 
                                         fullWidth 
                                         id="data_val" 
-                                        name="data_name" 
+                                        name="data" 
+                                        onChange={addInfo}
                                         label="Data" 
                                         variant="outlined" 
                                     />
@@ -150,12 +229,12 @@ const Preinv = () => {
                             <Grid container spacing={2} columns={10}>
                                 <Grid item xs={5}>
                                 
-                                    <Button size={"small"} variant="contained" fullWidth>Adicionar Informações</Button>
+                                    <Button size={"small"} variant="contained" onClick={sendBack} fullWidth>Adicionar Informações</Button>
                                     
                                 </Grid>
                                 <Grid item xs={5}>
                                 
-                                    <Button size={"small"} variant="contained" fullWidth color="success" >Gerar Excel</Button>
+                                    <Button size={"small"} variant="contained" onClick={gerarPlan} fullWidth color="success" >Gerar Excel</Button>
                                 
                                 </Grid>
                             </Grid>
@@ -166,7 +245,7 @@ const Preinv = () => {
                         
                     <Grid container spacing={3} columns={16}>
                        
-                        <Grid item xs={6}>
+                        <Grid item xs={4}>
                             
                             { idImg && (
                             <TextField 
@@ -180,12 +259,12 @@ const Preinv = () => {
                             />)}
 
                         </Grid>
-                        <Grid item xs={5}>
+                        <Grid item xs={6}>
                             
                             <Button size={"medium"} variant="contained" fullWidth onClick={rmV}>Caixa Anterior</Button>
                             
                         </Grid>
-                        <Grid item xs={5}>
+                        <Grid item xs={6}>
                             
                             <Button size={"medium"} variant="contained" fullWidth onClick={addV}>Proxima Caixa</Button>
 
